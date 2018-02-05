@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import Request 	from 'superagent';
 import _		from 'lodash';
 import { Link } from 'react-router-dom';
+import Validator from 'validator';
 import { Form, Button, Label, Table, Input, Popup, Menu, Icon, Modal, Header, Confirm, Radio, Checkbox, Segment } from 'semantic-ui-react';
 import ProductAddForm from './ProductAddForm.jsx';
 import ProductUpdateForm from "./ProductUpdateForm.jsx";
@@ -28,7 +29,19 @@ class HomeProduct extends React.Component {
 			name: "",
 			popupEdit: false,
 			email: "",
-			isAuth: ''
+			isAuth: '',
+			authority: '',
+			value: '',
+			checked: 'true',
+			data: {
+				id: '',
+				email: '',
+				login: '',
+				password: '',
+				authority: ''
+			},
+			errors: {},
+			id: ''
 		};
 		this.searchProduct = this.searchProduct.bind(this);
 		this.search = this.search.bind(this);
@@ -40,6 +53,9 @@ class HomeProduct extends React.Component {
 		this.handlePopupClose = this.handlePopupClose.bind(this);
 		this.addUserHandler = this.addUserHandler.bind(this);
 		this.handleChange = this.handleChange.bind(this);
+		this.onChange = this.onChange.bind(this);
+		this.apiCall = this.apiCall.bind(this);
+		this.validate = this.validate.bind(this);
 		this.setState({
 			loading: false,
 			productId: "",
@@ -82,13 +98,6 @@ class HomeProduct extends React.Component {
 			this.search();
 			this.setState({refreshHome: false});
 		}
-/*
-		console.log("WILL UP Log" + this.props.location.state.emailLogIn);
-		this.setState({email: this.props.location.state.emailLogIn})*/
-
-
-
-
 
 	}
 
@@ -183,12 +192,61 @@ class HomeProduct extends React.Component {
 		});
 	}
 
-	addUserHandler(){
-		console.log("Radio " + this.state.authority);
+	handleChange(){
+		//this.setState({authority: 'ADMIN' })
+		this.setState({checked: !this.state.checked});
+		if (this.state.checked = 'true')
+			this.setState({authority: "ADMIN"});
+		if (this.state.checked = 'false')
+			this.setState({authority: "SIMPLE"});
+
 	}
 
-	handleChange(){
-		this.setState({authority: this.state.value })
+	onChange(){
+
+		this.setState({data: { ...this.state.data, id: this.refs.id.value, email: this.refs.email.value, login: this.refs.login.value, password: this.refs.password.value}});
+
+	}
+
+	validate(data){
+		const errors = {};
+		if (!data.id) errors.id = "ID can't be blank";
+		if (!data.login) errors.login = "Login can't be blank";
+		if (!data.email) errors.email = "Invalid Email";
+		if (!data.password) errors.password = "Password can't be blank" ;
+
+		return errors;
+	}
+
+	addUserHandler(){
+		const errors = this.validate(this.state.data);
+		this.setState({ errors });
+		if (Object.keys(this.state.errors).length === 0){
+			//console.log(this.state.data);
+			//this.apiCall(this.state.data);
+			this.setState({ modalOpen: false });
+			console.log(this.state.checked);
+			if (this.state.checked = true)
+				this.setState({authority: "ADMIN"});
+			if (this.state.checked = false)
+				this.setState({authority: "SIMPLE"});
+			this.setState({data: { ...this.state.data, authority: this.state.authority}})
+			console.log(this.state.data);
+
+
+		}
+
+	}
+
+	apiCall(data){
+		var url = "http://localhost:8080/api/skeleton/user/add";
+		Request.post(url)
+		.set('Content-Type', 'application/json')
+		.set('Accept', 'application/json')
+		.send(data)
+		.then((response) => {
+		});
+
 	}
 
 
@@ -249,20 +307,24 @@ class HomeProduct extends React.Component {
    					 <Modal.Content>
      					<Form>
      						<Form.Field>
-     							<Input type="text" ref="id" placeholder="ID" />
-     							<Input type="text" ref="email" placeholder="Email" />
-     							<Input type="text" ref="login" placeholder="Login" />
-     							<Input type="password" ref="password" placeholder="Password" />
+     							<input type="text" ref="id" placeholder="ID" onChange = {this.onChange} />
+     							{this.state.errors.id && <span style = {{color: "#ae5856"}}>{this.state.errors.id} </span>}					
+     							<input type="email" ref="email" placeholder="Email" onChange={this.onChange} />
+     							{this.state.errors.email && <span style = {{color: "#ae5856"}}>{this.state.errors.email} </span>}		
+     							<input type="text" ref="login" placeholder="Login" onChange={this.onChange} />
+     							{this.state.errors.login && <span style = {{color: "#ae5856"}}>{this.state.errors.login} </span>}		
+     							<input type="password" ref="password" placeholder="Password" onChange={this.onChange} />
+     							{this.state.errors.password && <span style = {{color: "#ae5856"}}>{this.state.errors.password} </span>}		
+
 
           						<Segment color='olive' inverted>
           								<span color='black'>ADMIN  </span>
-      									<Radio 
+      									<Checkbox
       									toggle
-      									value="ADMIN" 
-      									ref="authority"
-      									onChange={this.handleChange}
-      									style={{float: "right"}}>
-      									</Radio>
+      									ref="role"
+      									checked={this.state.checked}
+      									onClick={this.handleChange}
+      									style={{float: "right"}} />
     							</Segment>
      						</Form.Field>
      					</Form>
@@ -272,7 +334,7 @@ class HomeProduct extends React.Component {
         				<Icon name='remove' /> No
       				</Button>
       				<Button color='green' inverted onClick={this.addUserHandler}>
-        				<Icon name='checkmark' /> Yes {this.state.productId}
+        				<Icon name='checkmark' /> Yes
       				</Button>
     				</Modal.Actions>
   				</Modal>}

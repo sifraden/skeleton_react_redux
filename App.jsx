@@ -6,6 +6,7 @@ import { Route } from 'react-router-dom';
 import HomePage from './HomePage.jsx';
 import LoginPage from './LoginPage.jsx';
 import HomeProduct from './HomeProduct.jsx';
+import MapContainer from './MapContainer.js';
 
 
 
@@ -16,6 +17,8 @@ class App extends React.Component {
 	   			<Route path = "/" exact component = {HomePage} />
 	   		    <Route path = "/login" exact component = {LoginPage} />
 	   		    <Route path = "/homeProduct" exact component = {HomeProduct} />
+	   		   	<Route path = "/map" exact component = {MapContainer} />
+
 
 	   			</div>
 	   			);
